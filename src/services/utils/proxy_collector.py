@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from loguru import logger
 import os
 import json
+import ipaddress
 
 class ProxyCollector:
     """代理搜集器"""
@@ -109,6 +110,18 @@ class ProxyCollector:
         except Exception as e:
             logger.warning(f"保存黑名单失败: {e}")
 
+    def is_china_ip(self, ip: str) -> bool:
+        """判断IP是否为中国大陆IP（使用第三方API，或本地规则，可扩展）"""
+        try:
+            # 使用 ip-api.com 免费API，或可替换为其他更快的API
+            resp = requests.get(f"http://ip-api.com/json/{ip}?fields=countryCode", timeout=3)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("countryCode") == "CN"
+        except Exception as e:
+            logger.debug(f"IP归属地查询失败: {ip} {e}")
+        return False
+
     def fetch_proxies_from_source(self, source: Dict) -> List[str]:
         if source['name'] in self.site_blacklist:
             logger.warning(f"{source['name']} 已被拉黑，跳过采集")
@@ -121,7 +134,6 @@ class ProxyCollector:
                 timeout=15
             )
             if response.status_code == 200:
-                # 只保留通用正则解析逻辑
                 matches = re.findall(source['pattern'], response.text)
                 proxies = [f"{ip}:{port}" for ip, port in matches]
                 valid_proxies = []
@@ -130,8 +142,10 @@ class ProxyCollector:
                         ip, port = proxy.split(':', 1)
                         if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
                             if port.isdigit() and 1 <= int(port) <= 65535:
-                                valid_proxies.append(proxy)
-                logger.info(f"从 {source['name']} 获取到 {len(valid_proxies)} 个有效代理")
+                                # 屏蔽中国大陆IP
+                                if not self.is_china_ip(ip):
+                                    valid_proxies.append(proxy)
+                logger.info(f"从 {source['name']} 获取到 {len(valid_proxies)} 个有效代理（已过滤中国节点）")
                 if len(valid_proxies) == 0:
                     self.site_fail_count[source['name']] = self.site_fail_count.get(source['name'], 0) + 1
                     if self.site_fail_count[source['name']] >= self.FAIL_THRESHOLD:
@@ -225,28 +239,29 @@ class ProxyCollector:
         
         return self.proxies
     
-    def test_proxies(self, max_workers: int = 10, max_valid: int = 15) -> List[Dict]:
-        """测试所有代理的可用性，找到 max_valid 个有效代理后立即停止"""
+    def test_proxies(self, max_workers: int = 10, max_valid: int = 15, batch_size: int = 20) -> List[Dict]:
+        """测试所有代理的可用性，找到 max_valid 个有效代理后立即停止（分批测试）"""
         logger.info("开始测试代理可用性...")
         working_proxies = []
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_proxy = {
-                executor.submit(self.test_proxy, proxy): proxy 
-                for proxy in self.proxies
-            }
-            for future in as_completed(future_to_proxy):
-                proxy = future_to_proxy[future]
-                try:
-                    result = future.result()
-                    if result:
-                        working_proxies.append(result)
-                        if len(working_proxies) >= max_valid:
-                            logger.info(f"已找到 {max_valid} 个有效代理，停止进一步测试")
-                            self.working_proxies = working_proxies
-                            return working_proxies
-                except Exception as e:
-                    logger.debug(f"测试代理 {proxy} 时出错: {e}")
-        # 按速度排序
+        proxies = list(self.proxies)
+        i = 0
+        while i < len(proxies) and len(working_proxies) < max_valid:
+            batch = proxies[i:i+batch_size]
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_proxy = {executor.submit(self.test_proxy, proxy): proxy for proxy in batch}
+                for future in as_completed(future_to_proxy):
+                    proxy = future_to_proxy[future]
+                    try:
+                        result = future.result()
+                        if result:
+                            working_proxies.append(result)
+                            if len(working_proxies) >= max_valid:
+                                logger.info(f"已找到 {max_valid} 个有效代理，停止进一步测试")
+                                self.working_proxies = working_proxies
+                                return working_proxies
+                    except Exception as e:
+                        logger.debug(f"测试代理 {proxy} 时出错: {e}")
+            i += batch_size
         working_proxies.sort(key=lambda x: x['speed'])
         self.working_proxies = working_proxies
         logger.info(f"找到 {len(working_proxies)} 个可用代理")

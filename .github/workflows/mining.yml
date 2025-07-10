@@ -317,6 +317,10 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+    - name: 拉取远程最新代码
+      run: |
+        git pull --rebase origin main
+
     - name: 添加并提交采集结果
       run: |
         git add src/database/sspanel_hosts/classifier/*.csv

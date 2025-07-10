@@ -27,14 +27,14 @@ class SSPanelHostsCollector:
         :param debug:
         """
         # 筛选 Malio 站点
-        self._QUERY = "由 @editXY 修改适配。"
+        self._QUERY = "Powered by SSPANEL Theme by editXY。"
 
         # 全量搜集
         # self._QUERY = 'inurl:staff "SSPanel V3 Mod UIM"'
 
         # 随机选择不同的搜索查询，减少被检测的可能性
         search_queries = [
-            "由 @editXY 修改适配。",
+            "Theme by editXY",
             'inurl:staff "SSPanel V3 Mod UIM"',
             "SSPanel V3 Mod UIM",
             "SSPanel UIM",

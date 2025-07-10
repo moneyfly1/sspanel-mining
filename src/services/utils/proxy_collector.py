@@ -153,6 +153,8 @@ class ProxyCollector:
             if response.status_code == 200:
                 matches = re.findall(source['pattern'], response.text)
                 proxies = [f"{ip}:{port}" for ip, port in matches]
+                # 只取前10个
+                proxies = proxies[:10]
                 valid_proxies = []
                 for proxy in proxies:
                     if ':' in proxy:
@@ -161,8 +163,10 @@ class ProxyCollector:
                             if port.isdigit() and 1 <= int(port) <= 65535:
                                 # 屏蔽中国大陆IP
                                 if not self.is_china_ip(ip):
-                                    valid_proxies.append(proxy)
-                logger.info(f"从 {source['name']} 获取到 {len(valid_proxies)} 个有效代理（已过滤中国节点）")
+                                    # 检测代理可用性
+                                    if self.test_proxy(proxy):
+                                        valid_proxies.append(proxy)
+                logger.info(f"从 {source['name']} 获取到 {len(valid_proxies)} 个可用代理（已过滤中国节点并检测可用性）")
                 if len(valid_proxies) == 0:
                     self.site_fail_count[source['name']] = self.site_fail_count.get(source['name'], 0) + 1
                     if self.site_fail_count[source['name']] >= self.FAIL_THRESHOLD:
@@ -219,8 +223,9 @@ class ProxyCollector:
             return None
     
     def collect_proxies(self, max_workers: int = 5) -> List[str]:
-        """搜集代理列表，去除kuaidaili相关逻辑"""
+        """搜集代理列表，搜集到5个检测通过的代理后立即停止"""
         logger.info("开始搜集代理...")
+        collected = []
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_source = {
                 executor.submit(self.fetch_proxies_from_source, source): source 
@@ -230,7 +235,11 @@ class ProxyCollector:
                 source = future_to_source[future]
                 try:
                     proxies = future.result()
-                    self.proxies.extend(proxies)
+                    collected.extend(proxies)
+                    if len(collected) >= 5:
+                        logger.info(f"已搜集到5个检测通过的代理，提前停止采集")
+                        self.proxies = collected[:5]
+                        return self.proxies
                     # 统计代理池成功率
                     if proxies is not None and len(proxies) > 0:
                         tested = 0
@@ -247,7 +256,7 @@ class ProxyCollector:
                 except Exception as e:
                     logger.error(f"从 {source['name']} 获取代理时出错: {e}")
         # 去重
-        self.proxies = list(set(self.proxies))
+        self.proxies = list(set(collected))
         logger.info(f"总共搜集到 {len(self.proxies)} 个唯一代理")
         return self.proxies
     

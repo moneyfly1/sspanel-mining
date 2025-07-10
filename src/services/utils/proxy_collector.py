@@ -14,6 +14,7 @@ from loguru import logger
 import os
 import json
 import ipaddress
+from bs4 import BeautifulSoup, Tag  # 新增Tag类型
 
 class ProxyCollector:
     """代理搜集器"""
@@ -201,17 +202,60 @@ class ProxyCollector:
             logger.debug(f"❌ 代理 {proxy} 测试失败: {e}")
             return None
     
+    def fetch_kuaidaili_proxies(self, target_count=200) -> List[str]:
+        """自动翻页采集 kuaidaili 免费代理，采够 target_count 个立即返回"""
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        }
+        proxies = []
+        page = 1
+        while len(proxies) < target_count:
+            url = f"https://www.kuaidaili.com/free/fps/{page}/"
+            try:
+                resp = requests.get(url, headers=headers, timeout=10)
+                if resp.status_code != 200:
+                    logger.warning(f"kuaidaili 第{page}页请求失败，状态码：{resp.status_code}")
+                    break
+                soup = BeautifulSoup(resp.text, "html.parser")
+                table = soup.find("table", attrs={"class": "table table-bordered table-striped"})
+                tbody = table.find('tbody') if isinstance(table, Tag) else None
+                if not isinstance(table, Tag) or not isinstance(tbody, Tag):
+                    logger.warning(f"kuaidaili 第{page}页未找到代理表格，可能被反爬。")
+                    break
+                for row in tbody.find_all("tr"):
+                    if not isinstance(row, Tag):
+                        continue
+                    cols = row.find_all("td")
+                    if len(cols) < 2:
+                        continue
+                    ip = cols[0].text.strip()
+                    port = cols[1].text.strip()
+                    # 屏蔽中国大陆IP
+                    if not self.is_china_ip(ip):
+                        proxies.append(f"{ip}:{port}")
+                        if len(proxies) >= target_count:
+                            break
+                logger.info(f"kuaidaili 第{page}页采集后累计 {len(proxies)} 个代理")
+                page += 1
+                time.sleep(2)
+            except Exception as e:
+                logger.warning(f"采集 kuaidaili 第{page}页出错: {e}")
+                break
+        return proxies[:target_count]
+    
     def collect_proxies(self, max_workers: int = 5) -> List[str]:
-        """搜集代理列表"""
+        """搜集代理列表，优先采集kuaidaili 200个"""
         logger.info("开始搜集代理...")
-        
-        # 从多个源并行获取代理
+        # 1. 先采集kuaidaili
+        kuaidaili_proxies = self.fetch_kuaidaili_proxies(200)
+        self.proxies = kuaidaili_proxies.copy()  # 优先放前面
+        logger.info(f"优先采集 kuaidaili 代理 {len(kuaidaili_proxies)} 个")
+        # 2. 采集其他源
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_source = {
                 executor.submit(self.fetch_proxies_from_source, source): source 
                 for source in self.proxy_sources
             }
-            
             for future in as_completed(future_to_source):
                 source = future_to_source[future]
                 try:
@@ -232,11 +276,9 @@ class ProxyCollector:
                             logger.warning(f"{source['name']} 代理池99%失败，已禁用")
                 except Exception as e:
                     logger.error(f"从 {source['name']} 获取代理时出错: {e}")
-        
         # 去重
         self.proxies = list(set(self.proxies))
         logger.info(f"总共搜集到 {len(self.proxies)} 个唯一代理")
-        
         return self.proxies
     
     def test_proxies(self, max_workers: int = 10, max_valid: int = 15, batch_size: int = 20) -> List[Dict]:

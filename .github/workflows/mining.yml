@@ -236,7 +236,7 @@ jobs:
         
         # 步骤1: 搜集代理
         echo "Step 1: Collecting proxies..."
-        python collect_proxies.py || {
+        python collect_proxies.py --max-valid=15 || {
           echo "Proxy collection failed, but continuing..."
         }
         

@@ -76,42 +76,9 @@ class ProxyCollector:
                     'Connection': 'keep-alive',
                 }
             },
-            # 新增代理池
-            {
-                'name': 'Kuaidaili',
-                'url': 'https://www.kuaidaili.com/free/fps/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            },
-            {
-                'name': 'IP3366',
-                'url': 'http://www.ip3366.net/free/?stype=1&page=1',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            },
-            {
-                'name': 'IPFoxy',
-                'url': 'https://www.ipfoxy.com/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            },
             {
                 'name': 'IPIdea',
                 'url': 'https://www.ipidea.net/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            },
-            {
-                'name': 'IPXProxy',
-                'url': 'https://www.ipxproxy.com/',
                 'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
                 'headers': {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'

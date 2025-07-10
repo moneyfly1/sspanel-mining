@@ -27,6 +27,54 @@ class ProxyCollector:
         # 代理网站列表
         self.proxy_sources = [
             {
+                'name': 'IPIdea',
+                'url': 'https://www.ipidea.net/',
+                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            },
+            {
+                'name': 'USProxy',
+                'url': 'https://www.us-proxy.org/',
+                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            },
+            {
+                'name': 'SSLProxies',
+                'url': 'https://www.sslproxies.org/',
+                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            },
+            {
+                'name': 'ProxySpace',
+                'url': 'https://proxyspace.pro/http.txt',
+                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            },
+            {
+                'name': 'TheSpeedX',
+                'url': 'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt',
+                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            },
+            {
+                'name': 'OpenProxySpace',
+                'url': 'https://openproxy.space/list/http',
+                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            },
+            {
                 'name': 'FreeProxyList',
                 'url': 'https://free-proxy-list.net/',
                 'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
@@ -43,30 +91,6 @@ class ProxyCollector:
                 }
             },
             {
-                'name': '66ip',
-                'url': 'http://www.66ip.cn/mo.php?tqsl=100',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': '89ip',
-                'url': 'https://www.89ip.cn/tqdl.html?api=1&num=100',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
                 'name': 'SocksProxy',
                 'url': 'https://www.socks-proxy.net/',
                 'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
@@ -76,14 +100,6 @@ class ProxyCollector:
                     'Accept-Language': 'en-US,en;q=0.5',
                     'Accept-Encoding': 'gzip, deflate',
                     'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'IPIdea',
-                'url': 'https://www.ipidea.net/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                 }
             },
         ]
@@ -202,55 +218,9 @@ class ProxyCollector:
             logger.debug(f"❌ 代理 {proxy} 测试失败: {e}")
             return None
     
-    def fetch_kuaidaili_proxies(self, target_count=200) -> List[str]:
-        """自动翻页采集 kuaidaili 免费代理，采够 target_count 个立即返回"""
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
-        }
-        proxies = []
-        page = 1
-        while len(proxies) < target_count:
-            url = f"https://www.kuaidaili.com/free/fps/{page}/"
-            try:
-                resp = requests.get(url, headers=headers, timeout=10)
-                if resp.status_code != 200:
-                    logger.warning(f"kuaidaili 第{page}页请求失败，状态码：{resp.status_code}")
-                    break
-                soup = BeautifulSoup(resp.text, "html.parser")
-                table = soup.find("table", attrs={"class": "table table-bordered table-striped"})
-                tbody = table.find('tbody') if isinstance(table, Tag) else None
-                if not isinstance(table, Tag) or not isinstance(tbody, Tag):
-                    logger.warning(f"kuaidaili 第{page}页未找到代理表格，可能被反爬。")
-                    break
-                for row in tbody.find_all("tr"):
-                    if not isinstance(row, Tag):
-                        continue
-                    cols = row.find_all("td")
-                    if len(cols) < 2:
-                        continue
-                    ip = cols[0].text.strip()
-                    port = cols[1].text.strip()
-                    # 屏蔽中国大陆IP
-                    if not self.is_china_ip(ip):
-                        proxies.append(f"{ip}:{port}")
-                        if len(proxies) >= target_count:
-                            break
-                logger.info(f"kuaidaili 第{page}页采集后累计 {len(proxies)} 个代理")
-                page += 1
-                time.sleep(2)
-            except Exception as e:
-                logger.warning(f"采集 kuaidaili 第{page}页出错: {e}")
-                break
-        return proxies[:target_count]
-    
     def collect_proxies(self, max_workers: int = 5) -> List[str]:
-        """搜集代理列表，优先采集kuaidaili 200个"""
+        """搜集代理列表，去除kuaidaili相关逻辑"""
         logger.info("开始搜集代理...")
-        # 1. 先采集kuaidaili
-        kuaidaili_proxies = self.fetch_kuaidaili_proxies(200)
-        self.proxies = kuaidaili_proxies.copy()  # 优先放前面
-        logger.info(f"优先采集 kuaidaili 代理 {len(kuaidaili_proxies)} 个")
-        # 2. 采集其他源
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_source = {
                 executor.submit(self.fetch_proxies_from_source, source): source 

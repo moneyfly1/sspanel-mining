@@ -33,14 +33,6 @@ class ProxyCollector:
                 }
             },
             {
-                'name': 'ProxyNova',
-                'url': 'https://www.proxynova.com/proxy-server-list/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            },
-            {
                 'name': 'ProxyList',
                 'url': 'https://www.proxy-list.download/api/v1/get?type=http',
                 'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
@@ -48,15 +40,6 @@ class ProxyCollector:
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                 }
             },
-            {
-                'name': 'SpysOne',
-                'url': 'http://spys.one/free-proxy-list/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            },
-            # 新增的代理源
             {
                 'name': '66ip',
                 'url': 'http://www.66ip.cn/mo.php?tqsl=100',
@@ -82,101 +65,6 @@ class ProxyCollector:
                 }
             },
             {
-                'name': 'Goubanjia',
-                'url': 'http://www.goubanjia.com/free/gngn/index.shtml',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'PubProxy',
-                'url': 'http://pubproxy.com/api/proxy?limit=100&format=json',
-                'pattern': r'"ip":"([^"]+)","port":"([^"]+)"',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'application/json',
-                }
-            },
-            {
-                'name': 'Proxy11',
-                'url': 'https://proxy11.com/api/proxy?limit=100',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'application/json',
-                }
-            },
-            {
-                'name': 'ProxyListDownload',
-                'url': 'https://www.proxy-list.download/api/v1/get?type=https&country=all',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/plain',
-                }
-            },
-            # 额外的代理源
-            {
-                'name': 'ProxyListDownloadHTTP',
-                'url': 'https://www.proxy-list.download/api/v1/get?type=http&country=all',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/plain',
-                }
-            },
-            {
-                'name': 'ProxyListDownloadSOCKS',
-                'url': 'https://www.proxy-list.download/api/v1/get?type=socks5&country=all',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/plain',
-                }
-            },
-            # 新增的高质量代理源
-            {
-                'name': 'SPYS',
-                'url': 'http://spys.one/free-proxy-list/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'HidemyName',
-                'url': 'https://hidemy.name/en/proxy-list/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'FreeProxyCZ',
-                'url': 'https://free-proxy.cz/en/proxylist/country-all/http/ping-all',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
                 'name': 'SocksProxy',
                 'url': 'https://www.socks-proxy.net/',
                 'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
@@ -188,94 +76,7 @@ class ProxyCollector:
                     'Connection': 'keep-alive',
                 }
             },
-            {
-                'name': 'Hidester',
-                'url': 'https://hidester.com/proxylist/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'Premproxy',
-                'url': 'https://premproxy.com/proxy-by-country/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'ProxyScrape',
-                'url': 'https://proxyscrape.com/free-proxy-list',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'OpenProxy',
-                'url': 'https://openproxy.space/list',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            {
-                'name': 'ProxyDB',
-                'url': 'https://proxydb.net/',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Connection': 'keep-alive',
-                }
-            },
-            # API类型的代理源
-            {
-                'name': 'ProxyScrapeAPI',
-                'url': 'https://api.proxyscrape.com/v2/?request=get&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/plain',
-                }
-            },
-            {
-                'name': 'ProxyScrapeHTTPS',
-                'url': 'https://api.proxyscrape.com/v2/?request=get&protocol=https&timeout=10000&country=all&ssl=all&anonymity=all',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/plain',
-                }
-            },
-            {
-                'name': 'ProxyScrapeSOCKS5',
-                'url': 'https://api.proxyscrape.com/v2/?request=get&protocol=socks5&timeout=10000&country=all&ssl=all&anonymity=all',
-                'pattern': r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-                'headers': {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': 'text/plain',
-                }
-            },
+            # 新增代理池
             {
                 'name': 'Kuaidaili',
                 'url': 'https://www.kuaidaili.com/free/fps/',
@@ -347,65 +148,22 @@ class ProxyCollector:
             return []
         try:
             logger.info(f"正在从 {source['name']} 获取代理...")
-            
             response = requests.get(
-                source['url'], 
-                headers=source['headers'], 
+                source['url'],
+                headers=source['headers'],
                 timeout=15
             )
-            
             if response.status_code == 200:
-                proxies = []
-                
-                # 处理不同格式的代理数据
-                if source['name'] == 'PubProxy':
-                    # PubProxy返回JSON格式
-                    try:
-                        data = response.json()
-                        if 'data' in data:
-                            for item in data['data']:
-                                if 'ip' in item and 'port' in item:
-                                    proxies.append(f"{item['ip']}:{item['port']}")
-                    except Exception as e:
-                        logger.warning(f"解析PubProxy JSON失败: {e}")
-                        # 尝试正则表达式解析
-                        matches = re.findall(source['pattern'], response.text)
-                        proxies = [f"{ip}:{port}" for ip, port in matches]
-                
-                elif source['name'] == 'Proxy11':
-                    # Proxy11可能返回JSON或文本格式
-                    try:
-                        data = response.json()
-                        if isinstance(data, list):
-                            for item in data:
-                                if isinstance(item, dict) and 'ip' in item and 'port' in item:
-                                    proxies.append(f"{item['ip']}:{item['port']}")
-                        elif isinstance(data, dict) and 'data' in data:
-                            for item in data['data']:
-                                if 'ip' in item and 'port' in item:
-                                    proxies.append(f"{item['ip']}:{item['port']}")
-                    except:
-                        # 如果不是JSON，使用正则表达式
-                        matches = re.findall(source['pattern'], response.text)
-                        proxies = [f"{ip}:{port}" for ip, port in matches]
-                
-                else:
-                    # 其他源使用正则表达式解析
-                    matches = re.findall(source['pattern'], response.text)
-                    proxies = [f"{ip}:{port}" for ip, port in matches]
-                
-                # 过滤无效的代理
+                # 只保留通用正则解析逻辑
+                matches = re.findall(source['pattern'], response.text)
+                proxies = [f"{ip}:{port}" for ip, port in matches]
                 valid_proxies = []
                 for proxy in proxies:
-                    # 检查IP和端口格式
                     if ':' in proxy:
                         ip, port = proxy.split(':', 1)
-                        # 验证IP格式
                         if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-                            # 验证端口格式
                             if port.isdigit() and 1 <= int(port) <= 65535:
                                 valid_proxies.append(proxy)
-                
                 logger.info(f"从 {source['name']} 获取到 {len(valid_proxies)} 个有效代理")
                 if len(valid_proxies) == 0:
                     self.site_fail_count[source['name']] = self.site_fail_count.get(source['name'], 0) + 1
@@ -424,7 +182,6 @@ class ProxyCollector:
                     self.save_blacklist()
                     logger.warning(f"{source['name']} 采集失败次数过多，已加入黑名单")
                 return []
-                
         except Exception as e:
             logger.error(f"从 {source['name']} 获取代理时出错: {e}")
             self.site_fail_count[source['name']] = self.site_fail_count.get(source['name'], 0) + 1
@@ -501,31 +258,30 @@ class ProxyCollector:
         
         return self.proxies
     
-    def test_proxies(self, max_workers: int = 10) -> List[Dict]:
-        """测试所有代理的可用性"""
+    def test_proxies(self, max_workers: int = 10, max_valid: int = 15) -> List[Dict]:
+        """测试所有代理的可用性，找到 max_valid 个有效代理后立即停止"""
         logger.info("开始测试代理可用性...")
-        
         working_proxies = []
-        
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_proxy = {
                 executor.submit(self.test_proxy, proxy): proxy 
                 for proxy in self.proxies
             }
-            
             for future in as_completed(future_to_proxy):
                 proxy = future_to_proxy[future]
                 try:
                     result = future.result()
                     if result:
                         working_proxies.append(result)
+                        if len(working_proxies) >= max_valid:
+                            logger.info(f"已找到 {max_valid} 个有效代理，停止进一步测试")
+                            self.working_proxies = working_proxies
+                            return working_proxies
                 except Exception as e:
                     logger.debug(f"测试代理 {proxy} 时出错: {e}")
-        
         # 按速度排序
         working_proxies.sort(key=lambda x: x['speed'])
         self.working_proxies = working_proxies
-        
         logger.info(f"找到 {len(working_proxies)} 个可用代理")
         return working_proxies
     

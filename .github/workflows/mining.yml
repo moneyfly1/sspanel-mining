@@ -366,27 +366,100 @@ jobs:
 
     - name: Pull latest changes
       run: |
-        git pull origin main --rebase || git pull origin main --allow-unrelated-histories
+        echo "=== Pulling Latest Changes ==="
+        echo "Current branch: $(git branch --show-current)"
+        echo "Remote URL: $(git remote get-url origin)"
+        
+        # 尝试拉取最新代码
+        if git pull origin main --rebase; then
+          echo "✅ Successfully pulled and rebased"
+        else
+          echo "⚠️ Rebase failed, trying merge..."
+          if git pull origin main --allow-unrelated-histories; then
+            echo "✅ Successfully pulled with unrelated histories"
+          else
+            echo "❌ Pull failed, resetting to remote..."
+            git fetch origin
+            git reset --hard origin/main
+          fi
+        fi
+        
+        echo "=== Git Status After Pull ==="
+        git status
 
     - name: Commit and push changes
       run: |
-        # 检查是否有新的CSV文件需要提交
+        echo "=== Git Status Before Commit ==="
+        git status
+        
+        echo "=== Checking for files to commit ==="
+        
+        # 检查CSV文件
+        echo "Checking CSV files..."
         if ls src/database/sspanel_hosts/classifier/mining_*.csv 1> /dev/null 2>&1; then
-          echo "Found CSV files to commit:"
+          echo "✅ Found CSV files to commit:"
           ls -la src/database/sspanel_hosts/classifier/mining_*.csv
-          git add src/database/sspanel_hosts/classifier/*.csv
-          git commit -m 'Auto update mining results' || echo "No changes to commit"
+          
+          # 检查文件是否已经被跟踪
+          for csv_file in src/database/sspanel_hosts/classifier/mining_*.csv; do
+            if [ -f "$csv_file" ]; then
+              echo "Processing: $csv_file"
+              git add "$csv_file"
+              echo "Added to git: $csv_file"
+            fi
+          done
+          
+          # 检查是否有变更需要提交
+          if git diff --cached --quiet; then
+            echo "⚠️ No changes in CSV files to commit"
+          else
+            echo "📝 Committing CSV files..."
+            git commit -m 'Auto update mining results' || echo "Failed to commit CSV files"
+          fi
         else
-          echo "No CSV files found to commit"
+          echo "❌ No CSV files found to commit"
         fi
         
-        # 检查是否有代理文件需要提交
+        # 检查代理文件
+        echo "Checking proxy file..."
         if [ -f "working_proxies.txt" ]; then
-          echo "Found proxy file to commit:"
+          echo "✅ Found proxy file to commit:"
           ls -la working_proxies.txt
-          git add working_proxies.txt
-          git commit -m 'Auto update proxy list' || echo "No proxy changes to commit"
+          
+          # 检查文件是否已经被跟踪
+          if git ls-files --error-unmatch working_proxies.txt >/dev/null 2>&1; then
+            echo "Proxy file is already tracked"
+            git add working_proxies.txt
+          else
+            echo "Proxy file is new, adding to git"
+            git add working_proxies.txt
+          fi
+          
+          # 检查是否有变更需要提交
+          if git diff --cached --quiet; then
+            echo "⚠️ No changes in proxy file to commit"
+          else
+            echo "📝 Committing proxy file..."
+            git commit -m 'Auto update proxy list' || echo "Failed to commit proxy file"
+          fi
+        else
+          echo "❌ No proxy file found to commit"
         fi
         
-        # 推送所有提交
-        git push origin main 
+        echo "=== Git Status After Commit ==="
+        git status
+        
+        echo "=== Pushing Changes ==="
+        # 检查是否有提交需要推送
+        if git log --oneline origin/main..HEAD | grep -q .; then
+          echo "📤 Pushing changes to remote..."
+          git push origin main || {
+            echo "❌ Push failed, trying force push..."
+            git push origin main --force-with-lease
+          }
+        else
+          echo "⚠️ No commits to push"
+        fi
+        
+        echo "=== Final Git Status ==="
+        git status 

@@ -12,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  actions: read
+  pull-requests: write
 
 jobs:
   test-chromedriver:
@@ -358,13 +360,38 @@ jobs:
           working_proxies.txt
         retention-days: 30
     
+    - name: Check repository permissions
+      run: |
+        echo "=== Repository Information ==="
+        echo "Repository: ${{ github.repository }}"
+        echo "Event: ${{ github.event_name }}"
+        echo "Actor: ${{ github.actor }}"
+        echo "Is Fork: ${{ github.event.repository.fork }}"
+        
+        # 检查是否是目标仓库（moneyfly1/sspanel-mining）
+        if [[ "${{ github.repository }}" == "moneyfly1/sspanel-mining" ]]; then
+          echo "✅ This is the target repository (moneyfly1/sspanel-mining)"
+          echo "CAN_PUSH=true" >> $GITHUB_ENV
+        else
+          echo "⚠️ This is not the target repository"
+          echo "CAN_PUSH=false" >> $GITHUB_ENV
+        fi
+
     - name: Set up git for push
+      if: env.CAN_PUSH == 'true'
       run: |
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        
+        # 确保推送到正确的仓库
+        echo "Setting up push to: moneyfly1/sspanel-mining"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moneyfly1/sspanel-mining.git
+        
+        echo "Current remote URL:"
+        git remote get-url origin
 
     - name: Pull latest changes
+      if: env.CAN_PUSH == 'true'
       run: |
         echo "=== Pulling Latest Changes ==="
         echo "Current branch: $(git branch --show-current)"
@@ -388,6 +415,7 @@ jobs:
         git status
 
     - name: Commit and push changes
+      if: env.CAN_PUSH == 'true'
       run: |
         echo "=== Git Status Before Commit ==="
         git status
@@ -462,4 +490,45 @@ jobs:
         fi
         
         echo "=== Final Git Status ==="
-        git status 
+        git status
+
+    - name: Create Pull Request for Fork
+      if: env.CAN_PUSH == 'false'
+      run: |
+        echo "=== Creating Pull Request for Fork ==="
+        
+        # 设置 Git 配置
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        
+        # 设置推送到目标仓库
+        echo "Setting up push to: moneyfly1/sspanel-mining"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/moneyfly1/sspanel-mining.git
+        
+        # 创建新分支
+        BRANCH_NAME="auto-update-mining-results-$(date +%Y%m%d-%H%M%S)"
+        git checkout -b "$BRANCH_NAME"
+        
+        # 添加文件
+        if ls src/database/sspanel_hosts/classifier/mining_*.csv 1> /dev/null 2>&1; then
+          echo "Adding CSV files..."
+          git add src/database/sspanel_hosts/classifier/*.csv
+        fi
+        
+        if [ -f "working_proxies.txt" ]; then
+          echo "Adding proxy file..."
+          git add working_proxies.txt
+        fi
+        
+        # 提交更改
+        if ! git diff --cached --quiet; then
+          git commit -m "Auto update mining results and proxy list"
+          
+          # 推送到目标仓库
+          git push origin "$BRANCH_NAME"
+          
+          echo "✅ Created branch: $BRANCH_NAME in moneyfly1/sspanel-mining"
+          echo "Please create a Pull Request manually to merge these changes"
+        else
+          echo "⚠️ No changes to commit"
+        fi 

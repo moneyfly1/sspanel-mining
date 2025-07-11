@@ -255,9 +255,27 @@ jobs:
         
         # 步骤2: 运行采集器
         echo "Step 2: Running collector with proxy support..."
-        python src/main.py mining --env=production --collector || {
-          echo "Collector failed, but continuing..."
-        }
+        
+        # 尝试运行采集器，如果失败则重试
+        COLLECTOR_SUCCESS=false
+        for attempt in 1 2 3; do
+          echo "Collector attempt $attempt/3..."
+          if python src/main.py mining --env=production --collector; then
+            COLLECTOR_SUCCESS=true
+            echo "✅ Collector succeeded on attempt $attempt"
+            break
+          else
+            echo "❌ Collector failed on attempt $attempt"
+            if [ $attempt -lt 3 ]; then
+              echo "Waiting 30 seconds before retry..."
+              sleep 30
+            fi
+          fi
+        done
+        
+        if [ "$COLLECTOR_SUCCESS" = false ]; then
+          echo "⚠️ All collector attempts failed, but continuing..."
+        fi
         
         # 检查是否生成了数据文件
         echo "Step 3: Checking for data files..."
@@ -280,9 +298,28 @@ jobs:
         
         # 步骤3: 运行分类器
         echo "Step 4: Running classifier..."
-        python src/main.py mining --env=production --classifier --source=local || {
-          echo "Classifier failed, but continuing..."
-        }
+        
+        # 检查是否有数据文件
+        if ls src/database/sspanel_hosts/dataset_*.txt 1> /dev/null 2>&1; then
+          # 检查最新的数据文件是否为空
+          LATEST_DATASET=$(ls -t src/database/sspanel_hosts/dataset_*.txt | head -1)
+          if [ -f "$LATEST_DATASET" ] && [ -s "$LATEST_DATASET" ]; then
+            echo "✅ Found non-empty dataset: $LATEST_DATASET"
+            python src/main.py mining --env=production --classifier --source=local || {
+              echo "Classifier failed, but continuing..."
+            }
+          else
+            echo "⚠️ Latest dataset is empty, using existing classifier data"
+            # 如果数据文件为空，尝试使用现有的分类器数据
+            if ls src/database/sspanel_hosts/classifier/mining_*.csv 1> /dev/null 2>&1; then
+              echo "✅ Using existing classifier data"
+            else
+              echo "❌ No existing classifier data found"
+            fi
+          fi
+        else
+          echo "❌ No dataset files found"
+        fi
         
         # 检查分类器结果
         echo "Step 5: Checking classifier results..."
@@ -310,14 +347,46 @@ jobs:
         ls -la src/database/sspanel_hosts/classifier/mining_*.csv 2>/dev/null || echo "No classifier files"
         echo "Proxy file:"
         ls -la working_proxies.txt 2>/dev/null || echo "No proxy file" 
+    
+    - name: Upload results as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sspanel-mining-results
+        path: |
+          src/database/sspanel_hosts/classifier/*.csv
+          src/database/sspanel_hosts/dataset_*.txt
+          working_proxies.txt
+        retention-days: 30
+    
     - name: Set up git for push
       run: |
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
+    - name: Pull latest changes
+      run: |
+        git pull origin main --rebase || git pull origin main --allow-unrelated-histories
+
     - name: Commit and push changes
       run: |
-        git add src/database/sspanel_hosts/classifier/*.csv
-        git commit -m 'Auto update mining results' || echo "No changes to commit"
-        git push 
+        # 检查是否有新的CSV文件需要提交
+        if ls src/database/sspanel_hosts/classifier/mining_*.csv 1> /dev/null 2>&1; then
+          echo "Found CSV files to commit:"
+          ls -la src/database/sspanel_hosts/classifier/mining_*.csv
+          git add src/database/sspanel_hosts/classifier/*.csv
+          git commit -m 'Auto update mining results' || echo "No changes to commit"
+        else
+          echo "No CSV files found to commit"
+        fi
+        
+        # 检查是否有代理文件需要提交
+        if [ -f "working_proxies.txt" ]; then
+          echo "Found proxy file to commit:"
+          ls -la working_proxies.txt
+          git add working_proxies.txt
+          git commit -m 'Auto update proxy list' || echo "No proxy changes to commit"
+        fi
+        
+        # 推送所有提交
+        git push origin main 

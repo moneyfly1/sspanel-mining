@@ -1,4 +1,4 @@
-# SSPanel Mining
+# 越权网站搜集 应用到getnodelist
 
 [![GitHub Actions](https://github.com/RobAI-Lab/sspanel-mining/workflows/SSPanel%20Mining/badge.svg)](https://github.com/RobAI-Lab/sspanel-mining/actions)
 

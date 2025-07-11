@@ -239,8 +239,14 @@ jobs:
         echo "database directory structure:"
         ls -la src/database/sspanel_hosts/
         
-        # 步骤1: 搜集代理
-        echo "Step 1: Collecting proxies..."
+        # 步骤1: 清理旧文件
+        echo "Step 1: Cleaning old files..."
+        rm -f working_proxies.txt
+        rm -f src/database/sspanel_hosts/dataset_*.txt
+        echo "✅ Cleaned old files"
+        
+        # 步骤2: 搜集代理
+        echo "Step 2: Collecting proxies..."
         python collect_proxies.py --max-valid=15 || {
           echo "Proxy collection failed, but continuing..."
         }
@@ -255,8 +261,8 @@ jobs:
           echo "⚠️ No proxy file found, will use direct connection"
         fi
         
-        # 步骤2: 运行采集器
-        echo "Step 2: Running collector with proxy support..."
+        # 步骤3: 运行采集器
+        echo "Step 3: Running collector with proxy support..."
         
         # 尝试运行采集器，如果失败则重试
         COLLECTOR_SUCCESS=false
@@ -280,7 +286,7 @@ jobs:
         fi
         
         # 检查是否生成了数据文件
-        echo "Step 3: Checking for data files..."
+        echo "Step 4: Checking for data files..."
         if ls src/database/sspanel_hosts/dataset_*.txt 1> /dev/null 2>&1; then
           echo "✅ Data files found after collector run:"
           ls -la src/database/sspanel_hosts/dataset_*.txt
@@ -298,8 +304,8 @@ jobs:
           echo "This might be due to Google blocking. Trying with existing data..."
         fi
         
-        # 步骤3: 运行分类器
-        echo "Step 4: Running classifier..."
+        # 步骤5: 运行分类器
+        echo "Step 5: Running classifier..."
         
         # 检查是否有数据文件
         if ls src/database/sspanel_hosts/dataset_*.txt 1> /dev/null 2>&1; then
@@ -324,7 +330,7 @@ jobs:
         fi
         
         # 检查分类器结果
-        echo "Step 5: Checking classifier results..."
+        echo "Step 6: Checking classifier results..."
         if ls src/database/sspanel_hosts/classifier/mining_*.csv 1> /dev/null 2>&1; then
           echo "✅ Classifier files found:"
           ls -la src/database/sspanel_hosts/classifier/mining_*.csv
@@ -397,6 +403,12 @@ jobs:
         echo "Current branch: $(git branch --show-current)"
         echo "Remote URL: $(git remote get-url origin)"
         
+        # 先检查是否有未提交的更改
+        if ! git diff --quiet; then
+          echo "⚠️ Found unstaged changes, stashing them..."
+          git stash push -m "Auto stash before pull"
+        fi
+        
         # 尝试拉取最新代码
         if git pull origin main --rebase; then
           echo "✅ Successfully pulled and rebased"
@@ -409,6 +421,12 @@ jobs:
             git fetch origin
             git reset --hard origin/main
           fi
+        fi
+        
+        # 恢复之前暂存的更改
+        if git stash list | grep -q "Auto stash before pull"; then
+          echo "📦 Restoring stashed changes..."
+          git stash pop
         fi
         
         echo "=== Git Status After Pull ==="
@@ -432,8 +450,14 @@ jobs:
           for csv_file in src/database/sspanel_hosts/classifier/mining_*.csv; do
             if [ -f "$csv_file" ]; then
               echo "Processing: $csv_file"
-              git add "$csv_file"
-              echo "Added to git: $csv_file"
+              # 检查文件是否有实际变更
+              if git diff --quiet "$csv_file" 2>/dev/null; then
+                echo "No changes in: $csv_file"
+              else
+                echo "Changes detected in: $csv_file"
+                git add "$csv_file"
+                echo "Added to git: $csv_file"
+              fi
             fi
           done
           
@@ -454,21 +478,26 @@ jobs:
           echo "✅ Found proxy file to commit:"
           ls -la working_proxies.txt
           
-          # 检查文件是否已经被跟踪
-          if git ls-files --error-unmatch working_proxies.txt >/dev/null 2>&1; then
-            echo "Proxy file is already tracked"
-            git add working_proxies.txt
+          # 检查文件是否有实际变更
+          if git diff --quiet working_proxies.txt 2>/dev/null; then
+            echo "No changes in proxy file"
           else
-            echo "Proxy file is new, adding to git"
+            echo "Changes detected in proxy file"
+            # 检查文件是否已经被跟踪
+            if git ls-files --error-unmatch working_proxies.txt >/dev/null 2>&1; then
+              echo "Proxy file is already tracked"
+            else
+              echo "Proxy file is new, adding to git"
+            fi
             git add working_proxies.txt
-          fi
-          
-          # 检查是否有变更需要提交
-          if git diff --cached --quiet; then
-            echo "⚠️ No changes in proxy file to commit"
-          else
-            echo "📝 Committing proxy file..."
-            git commit -m 'Auto update proxy list' || echo "Failed to commit proxy file"
+            
+            # 检查是否有变更需要提交
+            if git diff --cached --quiet; then
+              echo "⚠️ No changes in proxy file to commit"
+            else
+              echo "📝 Committing proxy file..."
+              git commit -m 'Auto update proxy list' || echo "Failed to commit proxy file"
+            fi
           fi
         else
           echo "❌ No proxy file found to commit"
@@ -491,6 +520,24 @@ jobs:
         
         echo "=== Final Git Status ==="
         git status
+        
+        # 显示最近的提交历史
+        echo "=== Recent Commits ==="
+        git log --oneline -5
+        
+        # 显示文件变更统计
+        echo "=== File Change Statistics ==="
+        if git diff --cached --stat; then
+          echo "Staged changes found"
+        else
+          echo "No staged changes"
+        fi
+        
+        if git diff --stat; then
+          echo "Unstaged changes found"
+        else
+          echo "No unstaged changes"
+        fi
 
     - name: Create Pull Request for Fork
       if: env.CAN_PUSH == 'false'
